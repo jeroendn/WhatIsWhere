@@ -1,0 +1,6 @@
+alpha.jeroendn.nl whatiswhere.local {
+    root * /apps/what_is_where
+	php_fastcgi what_is_where:9000 {
+        root /var/www/html
+    }
+}
