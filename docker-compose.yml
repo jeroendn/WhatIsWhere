@@ -1,7 +1,7 @@
 version: '3.8'
 
 services:
-  php_hero_morph:
+  php_what_is_where:
     hostname: what_is_where
     image: php:8.3-fpm-alpine
     container_name: php_what_is_where

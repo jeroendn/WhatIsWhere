@@ -1,5 +1,10 @@
 <?php
 
+if (substr($_SERVER['HTTP_HOST'], -6) === '.local') {
+    echo 'App cannot run on localhost';
+    die;
+}
+
 $dirString = shell_exec('cd ../../ && ls');
 
 $pattern = '/\b(?:https?:\/\/)?(?:[\w-]+\.)*\w[\w-]*(?:\.[a-z]{2,})+\b/';

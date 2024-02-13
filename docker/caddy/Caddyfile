@@ -1,6 +1,33 @@
-alpha.jeroendn.nl whatiswhere.local {
+(defaults_whatiswhere) {
     root * /apps/what_is_where
 	php_fastcgi what_is_where:9000 {
         root /var/www/html
+        try_files index.php = 404
+    }
+
+    # Serve static files
+    file_server {
+        root /apps/what_is_where/public
+    }
+
+    handle_errors {
+    	rewrite * /views/404.php
+    	file_server
+    }
+}
+
+alpha.jeroendn.nl {
+    import defaults_whatiswhere
+
+    tls {
+        on_demand
+    }
+}
+
+whatiswhere.local {
+    import defaults_whatiswhere
+
+    tls internal {
+        on_demand
     }
 }
