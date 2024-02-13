@@ -11,8 +11,7 @@
     }
 
     handle_errors {
-    	rewrite * /views/404.php
-    	file_server
+    	respond "{err.status_code} {err.status_text}"
     }
 }
 
