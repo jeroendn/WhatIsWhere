@@ -35,7 +35,7 @@ $domains = [
 foreach ($domains as $port => $domain) { ?>
     <details>
         <?php $data = getComposerJson($domain); ?>
-        <summary><strong><?= $domain ?></strong><?php if (isset($data['name'])): ?> (<?= $data['name']; ?>)<?php endif; ?></summary>
+        <summary><?= (new CurlResponse("https://$domain"))->getStatusCodeSpan() ?> <strong><?= $domain ?></strong><?php if (isset($data['name'])): ?> (<?= $data['name']; ?>)<?php endif; ?></summary>
         <a href="https://<?= $domain ?>" target="_blank">https://<?= $domain ?></a>
         <br>
         <a href="http://<?= $domain ?>" target="_blank">http://<?= $domain ?></a>
@@ -58,26 +58,18 @@ foreach ($domains as $port => $domain) { ?>
 
 function getComposerJson($domain): array|false
 {
-    $url = "https://$domain/composer.json"; // Replace with the actual URL of your JSON file
+    $url = "https://$domain/composer.json";
 
-    // Check if the file exists
-    $header_response = @get_headers($url, 1);
-    if (!isset($header_response[0]) || strpos($header_response[0], '404') !== false) {
+    $curlResponse = new CurlResponse($url);
+
+    // Check for 404 (file not found)
+    if ($curlResponse->getStatusCode() === 404) {
         echo '<span style="color:#F00;">File does not exist: ' . $url . '</span><br>';
         return false;
     }
 
-    // Fetch JSON data from the URL
-    $jsonData = @file_get_contents($url);
-
-    // Check if the data was fetched successfully
-    if ($jsonData === false) {
-        echo '<span style="color:#F00;">Error fetching data from ' . $url . '</span><br>';
-        return false;
-    }
-
     // Decode JSON data
-    $data = json_decode($jsonData, true); // The second parameter "true" makes it return an associative array
+    $data = json_decode($curlResponse->getResponse(), true); // The second parameter "true" makes it return an associative array
 
     // Check if JSON decoding was successful
     if ($data === null) {
@@ -86,4 +78,45 @@ function getComposerJson($domain): array|false
     }
 
     return $data;
+}
+
+final class CurlResponse
+{
+    private int    $statusCode;
+    private string $response;
+
+    public function __construct(string $url)
+    {
+        $handle = curl_init($url);
+        curl_setopt($handle, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($handle, CURLOPT_FOLLOWLOCATION, true);
+
+        // Fetch JSON data from the URL
+        $this->response = curl_exec($handle);
+
+        $this->statusCode = curl_getinfo($handle, CURLINFO_HTTP_CODE);
+    }
+
+    public function getStatusCode(): int
+    {
+        return $this->statusCode;
+    }
+
+    public function getStatusCodeSpan(): string
+    {
+        if ($this->statusCode === 0) return '';
+
+        $color = match (substr($this->statusCode, 0, 1)) {
+            '2'       => '#0F0',
+            '4', '5'    => '#F00',
+            default => '#777',
+        };
+
+        return '<span style="color: ' . $color . ';">' . $this->statusCode . '</span>';
+    }
+
+    public function getResponse(): string
+    {
+        return $this->response;
+    }
 }
