@@ -2,12 +2,12 @@
     root * /apps/what_is_where
 	php_fastcgi what_is_where:9000 {
         root /var/www/html
-        try_files index.php = 404
+        try_files {path} index.php = 404
     }
 
     # Serve static files
     file_server {
-        root /apps/what_is_where/public
+        hide .env
     }
 
     handle_errors {
