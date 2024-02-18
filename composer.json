@@ -1,0 +1,14 @@
+{
+  "name": "jeroendn/what-is-where",
+  "description": "Simple app to list an overview of currently hosted apps.",
+  "type": "project",
+  "authors": [
+    {
+      "name": "jeroendn",
+      "email": "info@jeroendn.nl"
+    }
+  ],
+  "require": {
+    "php": "^8.3"
+  }
+}

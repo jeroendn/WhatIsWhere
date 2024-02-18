@@ -32,45 +32,18 @@ $domains = [
     9024 => 'omega.jeroendn.nl',
 ];
 
-foreach ($domains as $port => $domain) {
-
-    $url = "https://$domain/composer.json"; // Replace with the actual URL of your JSON file
-
-    // Check if the file exists
-    $header_response = @get_headers($url, 1);
-    if (!isset($header_response[0]) || strpos($header_response[0], '404') !== false) {
-        echo 'File does not exist: ' . $url . '<br>';
-        continue;
-    }
-
-    // Fetch JSON data from the URL
-    $jsonData = @file_get_contents($url);
-
-    // Check if the data was fetched successfully
-    if ($jsonData === false) {
-        echo 'Error fetching data from ' . $url . '<br>';
-        continue;
-    }
-
-    // Decode JSON data
-    $data = json_decode($jsonData, true); // The second parameter "true" makes it return an associative array
-
-    // Check if JSON decoding was successful
-    if ($data === null) {
-        echo 'Error decoding JSON data from ' . $url . '<br>';
-        continue;
-    }
-    ?>
+foreach ($domains as $port => $domain) { ?>
     <details>
-        <summary><strong><?= $domain ?></strong> (<?= $composerName = $data['name']; ?>)</summary>
+        <?php $data = getComposerJson($domain); ?>
+        <summary><strong><?= $domain ?></strong><?php if (isset($data['name'])): ?> (<?= $data['name']; ?>)<?php endif; ?></summary>
         <a href="https://<?= $domain ?>" target="_blank">https://<?= $domain ?></a>
         <br>
         <a href="http://<?= $domain ?>" target="_blank">http://<?= $domain ?></a>
         <div>
             <p>
                 <strong>Composer description:</strong><br>
-                <?= $composerName ?><br>
-                <?= $data['description']; ?>
+                <?= $data['name'] ?? null; ?><br>
+                <?= $data['description'] ?? null; ?>
             </p>
         </div>
         <div>
@@ -81,4 +54,36 @@ foreach ($domains as $port => $domain) {
         </div>
     </details>
     <?php
+}
+
+function getComposerJson($domain): array|false
+{
+    $url = "https://$domain/composer.json"; // Replace with the actual URL of your JSON file
+
+    // Check if the file exists
+    $header_response = @get_headers($url, 1);
+    if (!isset($header_response[0]) || strpos($header_response[0], '404') !== false) {
+        echo '<span style="color:#F00;">File does not exist: ' . $url . '</span><br>';
+        return false;
+    }
+
+    // Fetch JSON data from the URL
+    $jsonData = @file_get_contents($url);
+
+    // Check if the data was fetched successfully
+    if ($jsonData === false) {
+        echo '<span style="color:#F00;">Error fetching data from ' . $url . '</span><br>';
+        return false;
+    }
+
+    // Decode JSON data
+    $data = json_decode($jsonData, true); // The second parameter "true" makes it return an associative array
+
+    // Check if JSON decoding was successful
+    if ($data === null) {
+        echo '<span style="color:#F00;">Error decoding JSON data from ' . $url . '</span><br>';
+        return false;
+    }
+
+    return $data;
 }
