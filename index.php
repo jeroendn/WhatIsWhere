@@ -34,8 +34,17 @@ $domains = [
 
 foreach ($domains as $port => $domain) { ?>
     <details>
-        <?php $data = getComposerJson($domain); ?>
-        <summary><?= (new CurlResponse("https://$domain"))->getStatusCodeSpan() ?> <strong><?= $domain ?></strong><?php if (isset($data['name'])): ?> (<?= $data['name']; ?>)<?php endif; ?></summary>
+        <?php
+        $data = getComposerJson($domain);
+
+        if ($domain === 'alpha.jeroendn.nl') {
+            $curlResponse = new CurlResponse("https://$domain/composer.json"); // Do not request self to avoid recursive server requests
+        }
+        else {
+            $curlResponse = new CurlResponse("https://$domain");
+        }
+        ?>
+        <summary><?= $curlResponse->getStatusCodeSpan() ?> <strong><?= $domain ?></strong><?php if (isset($data['name'])): ?> (<?= $data['name']; ?>)<?php endif; ?></summary>
         <a href="https://<?= $domain ?>" target="_blank">https://<?= $domain ?></a>
         <br>
         <a href="http://<?= $domain ?>" target="_blank">http://<?= $domain ?></a>
@@ -107,9 +116,9 @@ final class CurlResponse
         if ($this->statusCode === 0) return '';
 
         $color = match (substr($this->statusCode, 0, 1)) {
-            '2'       => '#0F0',
-            '4', '5'    => '#F00',
-            default => '#777',
+            '2'      => '#0F0',
+            '4', '5' => '#F00',
+            default  => '#777',
         };
 
         return '<span style="color: ' . $color . ';">' . $this->statusCode . '</span>';
